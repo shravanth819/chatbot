@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agri-Mitra AI Chatbot | Agronomic Co-Pilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0f0d;
+      --bg-surface: #111a15;
+      --bg-surface-elevated: #18261f;
+      --border-color: rgba(34, 197, 94, 0.15);
+      --border-hover: rgba(34, 197, 94, 0.35);
+      --accent-green: #10b981;
+      --accent-emerald: #059669;
+      --accent-glow: rgba(16, 185, 129, 0.2);
+      --text-primary: #f0fdf4;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --user-bubble: #064e3b;
+      --bot-bubble: #132a20;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 0%, #0d2818 0%, var(--bg-primary) 75%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    header {
+      background: rgba(17, 26, 21, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0.875rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.25rem;
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .brand-info h1 {
+      font-size: 1.125rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #ecfdf5, #a7f3d0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-info p {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+
+    .header-controls {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .select-pill {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.4rem 0.75rem;
+      border-radius: 20px;
+      font-size: 0.825rem;
+      font-family: inherit;
+      outline: none;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .select-pill:hover, .select-pill:focus {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .btn-toggle-ctx {
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.4rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.825rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      transition: all 0.2s ease;
+    }
+
+    .btn-toggle-ctx:hover {
+      border-color: var(--accent-green);
+    }
+
+    main {
+      flex: 1;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.25rem 1rem;
+      display: flex;
+      flex-direction: column;
+      height: calc(100vh - 72px);
+    }
+
+    #chat-box {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      scroll-behavior: smooth;
+    }
+
+    #chat-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    #chat-box::-webkit-scrollbar-thumb {
+      background: rgba(34, 197, 94, 0.2);
+      border-radius: 3px;
+    }
+
+    .message-row {
+      display: flex;
+      gap: 0.75rem;
+      max-width: 85%;
+      animation: fadeIn 0.25s ease-out;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-row.user {
+      align-self: flex-end;
+      flex-direction: row-reverse;
+    }
+
+    .message-row.bot {
+      align-self: flex-start;
+    }
+
+    .avatar {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+
+    .user .avatar {
+      background: #047857;
+    }
+
+    .bot .avatar {
+      background: #065f46;
+      border: 1px solid var(--accent-green);
+    }
+
+    .bubble {
+      padding: 0.85rem 1.15rem;
+      border-radius: 16px;
+      font-size: 0.925rem;
+      line-height: 1.6;
+      position: relative;
+    }
+
+    .user .bubble {
+      background: var(--user-bubble);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      color: #ecfdf5;
+      border-bottom-right-radius: 4px;
+    }
+
+    .bot .bubble {
+      background: var(--bot-bubble);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      border-bottom-left-radius: 4px;
+    }
+
+    .bot .bubble strong {
+      color: #34d399;
+    }
+
+    .citations-container {
+      margin-top: 0.6rem;
+      padding-top: 0.6rem;
+      border-top: 1px dashed rgba(34, 197, 94, 0.2);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+    }
+
+    .citation-badge {
+      font-size: 0.72rem;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: #6ee7b7;
+      padding: 0.2rem 0.55rem;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .bubble-actions {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .action-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.2rem 0.5rem;
+      border-radius: 4px;
+      transition: all 0.2s ease;
+    }
+
+    .action-btn:hover {
+      color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    /* Quick Prompts Bar */
+    .quick-prompts-bar {
+      display: flex;
+      gap: 0.5rem;
+      overflow-x: auto;
+      padding: 0.5rem 0;
+      margin-bottom: 0.5rem;
+    }
+
+    .quick-prompts-bar::-webkit-scrollbar {
+      height: 4px;
+    }
+    .quick-prompts-bar::-webkit-scrollbar-thumb {
+      background: rgba(34, 197, 94, 0.2);
+      border-radius: 2px;
+    }
+
+    .prompt-chip {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      color: #a7f3d0;
+      padding: 0.4rem 0.8rem;
+      border-radius: 18px;
+      font-size: 0.775rem;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .prompt-chip:hover {
+      background: var(--bg-surface-elevated);
+      border-color: var(--accent-green);
+      transform: translateY(-1px);
+    }
+
+    /* Input Box */
+    .input-wrapper {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 0.5rem 0.75rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      transition: border-color 0.2s ease;
+    }
+
+    .input-wrapper:focus-within {
+      border-color: var(--accent-green);
+      box-shadow: 0 0 15px var(--accent-glow);
+    }
+
+    .input-wrapper input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-primary);
+      font-size: 0.95rem;
+      font-family: inherit;
+      outline: none;
+      padding: 0.4rem 0.25rem;
+    }
+
+    .input-wrapper input::placeholder {
+      color: var(--text-muted);
+    }
+
+    .icon-button {
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 1.1rem;
+    }
+
+    .icon-button:hover {
+      color: var(--accent-green);
+      background: rgba(16, 185, 129, 0.1);
+    }
+
+    .icon-button.send {
+      background: var(--accent-green);
+      color: #042f2e;
+    }
+
+    .icon-button.send:hover {
+      background: #34d399;
+      transform: scale(1.04);
+    }
+
+    .icon-button.recording {
+      color: #ef4444;
+      animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { transform: scale(1); }
+      to { transform: scale(1.15); }
+    }
+
+    /* Telemetry context drawer */
+    #ctx-drawer {
+      display: none;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 0.85rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.825rem;
+    }
+
+    .ctx-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .ctx-item label {
+      display: block;
+      color: var(--text-secondary);
+      font-size: 0.725rem;
+      margin-bottom: 0.2rem;
+    }
+
+    .ctx-item input, .ctx-item select {
+      width: 100%;
+      background: var(--bg-surface-elevated);
+      border: 1px solid var(--border-color);
+      color: var(--text-primary);
+      padding: 0.3rem 0.5rem;
+      border-radius: 6px;
+      font-size: 0.8rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🌱</div>
+      <div class="brand-info">
+        <h1>Agri-Mitra Co-Pilot</h1>
+        <p>RAG Advisory • ICAR & FAO Knowledge Engine</p>
+      </div>
+    </div>
+    <div class="header-controls">
+      <select id="lang-select" class="select-pill">
+        <option value="English">English</option>
+        <option value="Hindi">हिंदी (Hindi)</option>
+        <option value="Kannada">ಕನ್ನಡ (Kannada)</option>
+        <option value="Telugu">తెలుగు (Telugu)</option>
+        <option value="Tamil">தமிழ் (Tamil)</option>
+        <option value="Marathi">मराठी (Marathi)</option>
+        <option value="Bengali">বাংলা (Bengali)</option>
+        <option value="Gujarati">ગુજરાતી (Gujarati)</option>
+        <option value="Malayalam">മലയാളം (Malayalam)</option>
+        <option value="Punjabi">ਪੰਜਾਬੀ (Punjabi)</option>
+        <option value="Odia">ଓଡ଼ିଆ (Odia)</option>
+      </select>
+      <button class="btn-toggle-ctx" id="toggle-ctx-btn" title="Toggle Field Telemetry Simulator">
+        ⚙️ Telemetry
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Telemetry Simulation Context Drawer -->
+    <div id="ctx-drawer">
+      <div style="font-weight: 600; color: #a7f3d0;">Live Field Telemetry Context (Simulated)</div>
+      <div class="ctx-grid">
+        <div class="ctx-item">
+          <label>Crop</label>
+          <input type="text" id="ctx-crop" value="Rice (Paddy)">
+        </div>
+        <div class="ctx-item">
+          <label>Soil pH</label>
+          <input type="number" id="ctx-ph" value="6.5" step="0.1">
+        </div>
+        <div class="ctx-item">
+          <label>Moisture (%)</label>
+          <input type="number" id="ctx-moisture" value="28">
+        </div>
+        <div class="ctx-item">
+          <label>Nitrogen (mg/kg)</label>
+          <input type="number" id="ctx-nitrogen" value="45">
+        </div>
+        <div class="ctx-item">
+          <label>Temperature (°C)</label>
+          <input type="number" id="ctx-temp" value="31">
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Message Feed -->
+    <div id="chat-box"></div>
+
+    <!-- Quick Prompts -->
+    <div class="quick-prompts-bar" id="quick-prompts"></div>
+
+    <!-- Chat Input Box -->
+    <div class="input-wrapper">
+      <button class="icon-button" id="mic-btn" title="Voice Input">🎤</button>
+      <input type="text" id="user-input" placeholder="Ask about fertilizer dose, soil pH, irrigation schedule..." autocomplete="off">
+      <button class="icon-button send" id="send-btn" title="Send Message">➤</button>
+    </div>
+  </main>
+
+  <audio id="audio-player" style="display:none;"></audio>
+
+  <script>
+    const chatBox = document.getElementById('chat-box');
+    const userInput = document.getElementById('user-input');
+    const sendBtn = document.getElementById('send-btn');
+    const micBtn = document.getElementById('mic-btn');
+    const langSelect = document.getElementById('lang-select');
+    const quickPromptsContainer = document.getElementById('quick-prompts');
+    const toggleCtxBtn = document.getElementById('toggle-ctx-btn');
+    const ctxDrawer = document.getElementById('ctx-drawer');
+    const audioPlayer = document.getElementById('audio-player');
+
+    let currentAudioUrl = null;
+
+    toggleCtxBtn.addEventListener('click', () => {
+      ctxDrawer.style.display = ctxDrawer.style.display === 'none' || !ctxDrawer.style.display ? 'block' : 'none';
+    });
+
+    async function loadQuickPrompts() {
+      try {
+        const res = await fetch(`/api/v1/copilot/quick-prompts?language=${encodeURIComponent(langSelect.value)}`);
+        const data = await res.json();
+        quickPromptsContainer.innerHTML = '';
+        (data.prompts || []).forEach(prompt => {
+          const chip = document.createElement('button');
+          chip.className = 'prompt-chip';
+          chip.innerText = prompt;
+          chip.onclick = () => {
+            userInput.value = prompt;
+            sendMessage();
+          };
+          quickPromptsContainer.appendChild(chip);
+        });
+      } catch (e) {
+        console.error("Could not load quick prompts", e);
+      }
+    }
+
+    langSelect.addEventListener('change', () => {
+      loadQuickPrompts();
+      appendBotGreeting();
+    });
+
+    function appendMessage(sender, text, citations = []) {
+      const row = document.createElement('div');
+      row.className = `message-row ${sender}`;
+
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      avatar.innerText = sender === 'user' ? '🧑‍🌾' : '🌱';
+
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.innerHTML = formatMarkdown(text);
+
+      if (citations && citations.length > 0) {
+        const citeDiv = document.createElement('div');
+        citeDiv.className = 'citations-container';
+        citations.forEach(c => {
+          const badge = document.createElement('span');
+          badge.className = 'citation-badge';
+          badge.innerText = `📄 ${c.source || c.document || c}`;
+          citeDiv.appendChild(badge);
+        });
+        bubble.appendChild(citeDiv);
+      }
+
+      if (sender === 'bot') {
+        const actions = document.createElement('div');
+        actions.className = 'bubble-actions';
+
+        const ttsBtn = document.createElement('button');
+        ttsBtn.className = 'action-btn';
+        ttsBtn.innerHTML = '🔊 Speak';
+        ttsBtn.onclick = () => playSpeech(text, langSelect.value);
+        actions.appendChild(ttsBtn);
+
+        bubble.appendChild(actions);
+      }
+
+      row.appendChild(avatar);
+      row.appendChild(bubble);
+      chatBox.appendChild(row);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function formatMarkdown(text) {
+      if (!text) return "";
+      let formatted = text
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+        .replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,0.1);padding:2px 4px;border-radius:4px;">$1</code>')
+        .replace(/•\s+(.*)/g, '<li>$1</li>')
+        .replace(/\n\n/g, '<br><br>')
+        .replace(/\n/g, '<br>');
+      return formatted;
+    }
+
+    async function playSpeech(text, lang) {
+      try {
+        const res = await fetch('/api/v1/copilot/tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, language: lang })
+        });
+        if (res.ok) {
+          const blob = await res.blob();
+          if (blob.size > 200) {
+            if (currentAudioUrl) URL.revokeObjectURL(currentAudioUrl);
+            currentAudioUrl = URL.createObjectURL(blob);
+            audioPlayer.src = currentAudioUrl;
+            audioPlayer.play();
+          }
+        }
+      } catch (err) {
+        console.error("TTS playback error", err);
+      }
+    }
+
+    async function sendMessage() {
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      appendMessage('user', text);
+      userInput.value = '';
+
+      const fieldCtx = {
+        crop: document.getElementById('ctx-crop').value,
+        ph: parseFloat(document.getElementById('ctx-ph').value) || 6.5,
+        moisture: parseFloat(document.getElementById('ctx-moisture').value) || 28,
+        nitrogen_mg_kg: parseFloat(document.getElementById('ctx-nitrogen').value) || 45,
+        temp_c: parseFloat(document.getElementById('ctx-temp').value) || 31
+      };
+
+      // Loading bubble
+      const loadingRow = document.createElement('div');
+      loadingRow.className = 'message-row bot';
+      loadingRow.id = 'loading-msg';
+      loadingRow.innerHTML = `
+        <div class="avatar">🌱</div>
+        <div class="bubble"><em>Analyzing ICAR/FAO knowledge base...</em></div>
+      `;
+      chatBox.appendChild(loadingRow);
+      chatBox.scrollTop = chatBox.scrollHeight;
+
+      try {
+        const response = await fetch('/api/v1/copilot/query', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            question: text,
+            language: langSelect.value,
+            field_context: fieldCtx
+          })
+        });
+        const data = await response.json();
+        document.getElementById('loading-msg')?.remove();
+        appendMessage('bot', data.answer || "No response received.", data.citations || []);
+      } catch (e) {
+        document.getElementById('loading-msg')?.remove();
+        appendMessage('bot', '⚠️ Error connecting to Co-Pilot backend service.');
+      }
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    userInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') sendMessage();
+    });
+
+    // Voice recognition
+    if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+
+      micBtn.addEventListener('click', () => {
+        const langCode = {
+          "English": "en-IN",
+          "Hindi": "hi-IN",
+          "Kannada": "kn-IN",
+          "Telugu": "te-IN",
+          "Tamil": "ta-IN",
+          "Marathi": "mr-IN",
+          "Bengali": "bn-IN",
+          "Gujarati": "gu-IN",
+          "Malayalam": "ml-IN",
+          "Punjabi": "pa-IN"
+        }[langSelect.value] || "en-IN";
+
+        recognition.lang = langCode;
+        recognition.start();
+        micBtn.classList.add('recording');
+      });
+
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        userInput.value = transcript;
+        micBtn.classList.remove('recording');
+        sendMessage();
+      };
+
+      recognition.onerror = () => micBtn.classList.remove('recording');
+      recognition.onend = () => micBtn.classList.remove('recording');
+    } else {
+      micBtn.style.display = 'none';
+    }
+
+    function appendBotGreeting() {
+      const greetings = {
+        "English": "Namaste! 🌱 I am **Agri-Mitra Co-Pilot**, your AI agronomist backed by ICAR and FAO knowledge bases. Ask me anything about fertilizers, soil health, irrigation schedules, or yield planning!",
+        "Hindi": "नमस्ते! 🌱 मैं **कृषि-मित्र को-पायलट** हूँ। आप मुझसे खाद की मात्रा, मिट्टी का pH, सिंचाई और फसल सुरक्षा के बारे में पूछ सकते हैं।",
+        "Kannada": "ನಮಸ್ಕಾರ! 🌱 ನಾನು **ಕೃಷಿ-ಮಿತ್ರ ಸಹಾಯಕ (Co-Pilot)**. ರಸಗೊಬ್ಬರ ಪ್ರಮಾಣ, ಮಣ್ಣಿನ pH, ನೀರಾವರಿ ವೇಳಾಪಟ್ಟಿ ಬಗ್ಗೆ ಕೇಳಿ.",
+        "Telugu": "నమస్కారం! 🌱 నేను **అగ్రి-మిత్ర కో-పైలట్**. ఎరువుల మోతాదు, నేల pH, మరియు నీటిపారుదల ప్రణాళిక గురించి అడగండి."
+      };
+      appendMessage('bot', greetings[langSelect.value] || greetings["English"]);
+    }
+
+    // Init
+    loadQuickPrompts();
+    appendBotGreeting();
+  </script>
+</body>
+</html>
