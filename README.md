@@ -1,11 +1,11 @@
-# 🌱 Agri-Mitra AI Chatbot & Agronomic Co-Pilot
+# 🌱 Agri-Mitra AI Chatbot & Agronomic Co-Pilot (Backend API Engine)
 
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg)](https://fastapi.tiangolo.com)
 [![LangChain](https://img.shields.io/badge/LangChain-Enabled-orange.svg)](https://www.langchain.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-An intelligent, multilingual AI Agronomic Chatbot and Co-Pilot tailored for Indian farmers and agricultural advisors. Built with **Retrieval-Augmented Generation (RAG)** over ICAR and FAO agronomic knowledge repositories, live field telemetry context enrichment, multilingual voice synthesis (ElevenLabs + Regional Neural Streams), and land record document OCR.
+An intelligent, multilingual AI Agronomic Chatbot and Co-Pilot backend service tailored for Indian farmers and agricultural advisors. Built with **Retrieval-Augmented Generation (RAG)** over ICAR and FAO agronomic knowledge repositories, live field telemetry context enrichment, multilingual voice synthesis (ElevenLabs + Regional Neural Streams), and land record document OCR.
 
 ---
 
@@ -16,16 +16,13 @@ An intelligent, multilingual AI Agronomic Chatbot and Co-Pilot tailored for Indi
   - Seamlessly falls back to an intelligent, verified offline agronomic rule engine covering soil pH, NPK fertilization schedules, irrigation timing, and crop recommendations.
 - **🗣️ Multilingual & Regional Voice (11 Languages)**:
   - English, Hindi (हिंदी), Kannada (ಕನ್ನಡ), Telugu (తెలుగు), Tamil (தமிழ்), Marathi (मराठी), Bengali (বাংলা), Gujarati (ગુજરાતી), Malayalam (മലയാളം), Punjabi (ਪੰਜਾਬੀ), Odia (ଓଡ଼ିଆ).
-  - Speech-to-Text input via Web Speech API.
   - High-fidelity Text-to-Speech (TTS) audio streaming via ElevenLabs Multilingual V2 with neural regional fallback.
 - **📊 Real-time Field Telemetry Context**:
   - Contextually enriches prompts with live soil moisture, NPK sensor levels, field temperature, and crop stage.
 - **📄 Land Record Document OCR**:
   - Automatically parses RTC/Pahani/7-12 land records to extract owner name, survey number, area in regional units (Guntha, Bigha, Cent, Acre to Hectare conversion), and soil taxonomy.
-- **💻 Multiple Interfaces**:
-  - **Standalone Web UI**: Dark-mode glassmorphism interface with voice input, audio playback, and telemetry simulator (`http://localhost:8000`).
-  - **FastAPI REST API**: Fully documented Swagger/OpenAPI endpoints (`/docs`).
-  - **Streamlit Interface**: Interactive Python frontend (`streamlit run streamlit_app.py`).
+- **⚡ High-Performance REST API**:
+  - FastAPI server with complete OpenAPI/Swagger documentation (`/docs`).
 
 ---
 
@@ -53,14 +50,11 @@ An intelligent, multilingual AI Agronomic Chatbot and Co-Pilot tailored for Indi
 │   ├── ICAR_Pest_Disease_Management_Advisory.pdf
 │   ├── ICAR_Soil_Health_pH_Management.pdf
 │   └── ICAR_Yield_Benchmarks_Crop_Statistics.pdf
-├── static/
-│   └── index.html                 # Interactive Web Chatbot UI
 ├── tests/
 │   └── test_copilot_conversational.py # Test suite
 ├── .env.example                   # Environment template
 ├── .gitignore
 ├── requirements.txt               # Dependencies
-├── streamlit_app.py               # Streamlit application
 └── README.md
 ```
 
@@ -97,18 +91,12 @@ GOOGLE_API_KEY=your_gemini_api_key
 ELEVENLABS_API_KEY=your_elevenlabs_key
 ```
 
-### 3. Run the Chatbot
+### 3. Run the Backend API Service
 
-#### Option A: FastAPI Web App & REST API (Recommended)
 ```bash
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
-Open **`http://localhost:8000`** in your browser for the Web Chat interface, or **`http://localhost:8000/docs`** for interactive API documentation.
-
-#### Option B: Streamlit UI
-```bash
-streamlit run streamlit_app.py
-```
+Open **`http://localhost:8000/docs`** in your browser for interactive API documentation and testing.
 
 ---
 
